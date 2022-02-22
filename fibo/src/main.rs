@@ -1,5 +1,18 @@
+use clap::Parser;
+use std::process::Command;
+
+
+#[derive(clap::Parser)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// rank of fibo to compute
+    #[clap(short, long)]
+    count: u32,
+}
+
 fn main() {
-    for i in 0..=50 {
+    let args = Args::parse();
+    for i in 0..=args.count {
         let val: Option<u32> = fibo(i);
         match val {
             None => return,
