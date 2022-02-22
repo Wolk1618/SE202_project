@@ -8,12 +8,17 @@ fn fibo(n: u32) -> u32 {
     let mut new_val = 1;
     let mut former_val = 0;
     let mut inter;
-    for _ in 1..=n {
+    if n == 0 {
+        return 0;
+    } else if n == 1 {
+        return 1;
+    }
+    for _ in 1..n {
         inter = new_val;
         new_val = new_val + former_val;
         former_val = inter;
     }
-    return new_val;
+    new_val
 
 }
 
