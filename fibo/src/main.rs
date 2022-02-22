@@ -15,7 +15,7 @@ fn fibo(n: u32) -> u32 {
     }
     for _ in 1..n {
         inter = new_val;
-        new_val = new_val.saturating_add(former_val);
+        new_val = new_val.checked_add(former_val).unwrap();
         former_val = inter;
     }
     new_val
