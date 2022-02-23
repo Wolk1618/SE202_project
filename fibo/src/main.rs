@@ -5,7 +5,7 @@ use clap::Parser;
 #[clap(author, version, about, long_about = None)]
 struct Args {
     /// rank of fibo to compute
-    #[clap(short, long)]
+    #[clap(short = 'c', long = "count")]
     count: u32,
 }
 
