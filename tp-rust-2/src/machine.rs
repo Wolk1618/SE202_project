@@ -22,7 +22,11 @@ impl Machine {
     /// # Panics
     /// This function panics when `memory` is larger than the machine memory.
     pub fn new(memory: &[u8]) -> Self {
-        Machine {mem : [0; MEMORY_SIZE], reg : [0; NREGS]}
+        if memory.len() > MEMORY_SIZE {
+            panic!("Memory given is too big !");
+        } else {
+            Machine {mem : [0; MEMORY_SIZE], reg : [0; NREGS]}
+        }
     }
 
     /// Run until the program terminates or until an error happens.
@@ -51,7 +55,24 @@ impl Machine {
     /// terminated (upon encountering an exit instruction), or
     /// `false` if the execution must continue.
     pub fn step_on<T: Write>(&mut self, fd: &mut T) -> Result<bool, MachineError> {
-        unimplemented!()
+        let ip = self.reg[IP];
+        self.set_reg(IP, ip + 1);
+        let nip : usize = ip.try_into().unwrap();
+        let instr = &self.mem[nip..nip+3];
+        let op1 = *instr.get(1).unwrap();
+        let op2 = *instr.get(2).unwrap();
+        let op3 = *instr.get(3).unwrap();
+        match *instr.get(0).unwrap() {
+            0 => self.moveif(op1, op2, op3),
+            1 => self.store(op1, op2),
+            2 => self.load(op1, op2),
+            3 => self.loadimm(op1, op2, op3),
+            4 => self.sub(op1, op2, op3),
+            5 => Ok(println!("{}", op2)),
+            6 => return Ok(true),
+            7 => Ok(println!("{}", op2)),
+        }
+        Ok(false)
     }
 
     /// Similar to [step_on](Machine::step_on).
@@ -77,5 +98,25 @@ impl Machine {
     /// Reference onto the machine current memory.
     pub fn memory(&self) -> &[u8] {
         &self.mem
+    }
+
+    pub fn moveif(&mut self, reg1 : u8, reg2 : u8, cond : u8) -> Result<(), MachineError> {
+        Ok(())
+    }
+
+    pub fn store(&mut self, reg1 : u8, reg2 : u8) -> Result<(), MachineError> {
+        unimplemented!()
+    }
+
+    pub fn load(&mut self, reg1 : u8, reg2 : u8) -> Result<(), MachineError> {
+        unimplemented!()
+    }
+
+    pub fn loadimm(&mut self, reg1 : u8, l : u8, h : u8) -> Result<(), MachineError> {
+        unimplemented!()
+    }
+
+    pub fn sub(&mut self, dest : u8, op1 : u8, op2 : u8) -> Result<(), MachineError> {
+        unimplemented!()
     }
 }
