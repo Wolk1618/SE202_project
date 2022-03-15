@@ -14,6 +14,7 @@ pub struct Machine {
 pub enum MachineError {
     TooBigSize,
     BadRegisterName,
+    InvalidChar,
 }
 
 impl Machine {
@@ -26,7 +27,9 @@ impl Machine {
         if memory.len() > MEMORY_SIZE {
             panic!("Memory given is too big !");
         } else {
-            Machine {mem : memory.try_into().unwrap(), reg : [0; NREGS]}
+            let mut tab : [u8; MEMORY_SIZE] = [0; MEMORY_SIZE];
+            tab[0..memory.len()].copy_from_slice(memory);
+            Machine {mem : tab, reg : [0; NREGS]}
         }
     }
 
@@ -64,18 +67,22 @@ impl Machine {
         let op2 = *instr.get(2).unwrap();
         let op3 = *instr.get(3).unwrap();
         match *instr.get(0).unwrap() {
-            0 => self.moveif(op1.try_into().unwrap(), op2.try_into().unwrap(), op3),
-            1 => self.store(op1.try_into().unwrap(), op2.try_into().unwrap()),
-            2 => self.load(op1.try_into().unwrap(), op2.try_into().unwrap()),
-            3 => self.loadimm(op1, op2, op3),
-            4 => self.sub(op1.try_into().unwrap(), op2.try_into().unwrap(), op3.try_into().unwrap()),
-            5 => {
-                write!(fd, "{}", op2).unwrap();
+            1 => self.moveif(op1.try_into().unwrap(), op2.try_into().unwrap(), op3.try_into().unwrap()),
+            2 => self.store(op1.try_into().unwrap(), op2.try_into().unwrap()),
+            3 => self.load(op1.try_into().unwrap(), op2.try_into().unwrap()),
+            4 => self.loadimm(op1.try_into().unwrap(), op2, op3),
+            5 => self.sub(op1.try_into().unwrap(), op2.try_into().unwrap(), op3.try_into().unwrap()),
+            6 => {
+                let number : usize = op1.try_into().unwrap();
+                let content : u32 = self.reg[number];
+                write!(fd, "{}", content as u8 as char).unwrap();
                 return Ok(false);
             },
-            6 => return Ok(true),
-            7 => {
-                format!("{}", op2);
+            7 => return Ok(true),
+            8 => {
+                let number : usize = op1.try_into().unwrap();
+                let content : u32 = self.reg[number];
+                write!(fd, "{}", content).unwrap();
                 return Ok(false);
             },
             _ => panic!("Bad number"),
@@ -107,7 +114,8 @@ impl Machine {
         &self.mem
     }
 
-    pub fn moveif(&mut self, reg1 : usize, reg2 : usize, cond : u8) -> Result<bool, MachineError> {
+    pub fn moveif(&mut self, reg1 : usize, reg2 : usize, reg3 : usize) -> Result<bool, MachineError> {
+        let cond = self.reg[reg3];
         if cond != 0 {
             if (reg1 < NREGS) & (reg2 < NREGS) {
                 self.set_reg(reg1, self.reg[reg2]).unwrap();
@@ -137,21 +145,28 @@ impl Machine {
     pub fn load(&mut self, reg1 : usize, reg2 : usize) -> Result<bool, MachineError> {
         if (reg1 < NREGS) & (reg2 < NREGS) {
             let adr : usize = self.reg[reg2].try_into().unwrap();
-            let content = &self.mem[adr..=adr+3];
-            //self.set_reg(reg2, content.try_into().unwrap());
+            let tab : [u8; 4] = self.mem[adr..=adr+3].try_into().unwrap();
+            let content = u32::from_le_bytes(tab);
+            self.set_reg(reg1, content).unwrap();
             Ok(false)
         } else {
             Err(MachineError::BadRegisterName)
         }
     }
 
-    pub fn loadimm(&mut self, reg1 : u8, l : u8, h : u8) -> Result<bool, MachineError> {
-        unimplemented!()
+    pub fn loadimm(&mut self, reg1 : usize, l : u8, h : u8) -> Result<bool, MachineError> {
+        if reg1 < NREGS {
+            let val : i32 = i16::from_le_bytes([l, h]) as i32;
+            self.set_reg(reg1, val as u32).unwrap();
+            Ok(false)
+        } else {
+            Err(MachineError::BadRegisterName)
+        }
     }
 
     pub fn sub(&mut self, dest : usize, op1 : usize, op2 : usize) -> Result<bool, MachineError> {
         if (op1 < NREGS) & (op2 < NREGS) & (dest < NREGS) {
-            let result = self.reg[op1] - self.reg[op2];
+            let result = self.reg[op1].wrapping_sub(self.reg[op2]);
             self.set_reg(dest, result).unwrap();
             Ok(false)
         } else {
