@@ -89,13 +89,13 @@ fn early_ip_advance() {
     // 4: move r0 <- r1 if r0 != 0
     let mut machine = Machine::new(&[1, 1, 0, 0, 1, 0, 1, 0]);
     expect(&mut machine, false, 4);
-    assert_eq!(4, machine.regs()[1],);
+    assert_eq!(4, machine.regs()[1]);
 
     expect(&mut machine, false, 4);
     assert_eq!(4, machine.regs()[1]);
 
     expect(&mut machine, false, 4);
-    assert_eq!(4, machine.regs()[1],);
+    assert_eq!(4, machine.regs()[1]);
 }
 
 #[test]

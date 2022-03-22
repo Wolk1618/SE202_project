@@ -1,0 +1,78 @@
+use micromath::F32Ext;
+use core::ops;
+
+#[derive(Clone)]
+#[derive(Copy)]
+#[derive(Default)]
+pub struct Color {
+    r : u8,
+    g : u8,
+    b : u8,
+}
+
+pub struct Image([Color; 64]);
+
+const RED : Color = Color{r : 255, g : 0, b : 0};
+const GREEN : Color = Color{r : 0, g : 255, b : 0};
+const BLUE : Color = Color{r : 0, g : 0, b : 255};
+
+fn limit(op : f32) -> u8 {
+    if op > 255 as f32 {
+        255 as f32
+    } else {
+        op as f32
+    }
+}
+
+impl Color {
+
+    pub fn gamma_correct(&self) -> Self {
+        Color{
+            r : gamma::gamma_correct(self.r),
+            g : gamma::gamma_correct(self.g),
+            b : gamma::gamma_correct(self.b),
+        }
+    }
+
+}
+
+impl Mul<f32> for Color {
+
+    fn mul(self, mult : f32) -> Self {
+        Color{
+            r : limit(self.r as f32 * mult),
+            g : limit(self.g as f32 * mult),
+            b : limit(self.b as f32 * mult),
+        }
+    }
+}
+
+impl Div<f32> for Color {
+
+    fn div(self, div : f32) -> Self {
+        sef.mul(1 / mult)
+    }
+}
+
+impl Image {
+
+    pub fn new_solid(color : Color) -> Self {
+        Image([color; 64])
+    }
+}
+
+impl Default for Image {
+    unimplemented!();
+}
+
+impl Index<(usize, usize)> for Image {
+    
+    fn index(self, index : (usize, usize)) -> Color {
+        let uindex : usize = (8 * index.0) + index.1;
+        self.uindex
+    }
+}
+
+impl IndexMut<(usize, usize)> for Image {
+    unimplemented!();
+}
