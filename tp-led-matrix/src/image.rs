@@ -1,5 +1,7 @@
-use micromath::F32Ext;
-use core::ops;
+#[allow(unused_imports)]
+
+use micromath::F32;
+use super::gamma;
 
 #[derive(Clone)]
 #[derive(Copy)]
@@ -17,10 +19,10 @@ const GREEN : Color = Color{r : 0, g : 255, b : 0};
 const BLUE : Color = Color{r : 0, g : 0, b : 255};
 
 fn limit(op : f32) -> u8 {
-    if op > 255 as f32 {
-        255 as f32
+    if op > 255_f32 {
+        255
     } else {
-        op as f32
+        op as u8
     }
 }
 
@@ -36,7 +38,9 @@ impl Color {
 
 }
 
-impl Mul<f32> for Color {
+impl core::ops::Mul<f32> for Color {
+
+    type Output = Color;
 
     fn mul(self, mult : f32) -> Self {
         Color{
@@ -47,10 +51,12 @@ impl Mul<f32> for Color {
     }
 }
 
-impl Div<f32> for Color {
+impl core::ops::Div<f32> for Color {
+
+    type Output = Color;
 
     fn div(self, div : f32) -> Self {
-        sef.mul(1 / mult)
+        self * (1_f32 / div)
     }
 }
 
@@ -59,20 +65,35 @@ impl Image {
     pub fn new_solid(color : Color) -> Self {
         Image([color; 64])
     }
-}
 
-impl Default for Image {
-    unimplemented!();
-}
-
-impl Index<(usize, usize)> for Image {
-    
-    fn index(self, index : (usize, usize)) -> Color {
-        let uindex : usize = (8 * index.0) + index.1;
-        self.uindex
+    pub fn row(&self, row : usize) -> &[Color] {
+        &self.0[8 * row .. 8 * (row + 1)]
     }
 }
 
-impl IndexMut<(usize, usize)> for Image {
-    unimplemented!();
+impl Default for Image {
+    
+    fn default() -> Self {
+        Image::new_solid(Default::default())
+    }
+
+}
+
+impl core::ops::Index<(usize, usize)> for Image {
+
+    type Output = Color;
+    
+    fn index(&self, index : (usize, usize)) -> &Color {
+        let uindex : usize = (8 * index.0) + index.1;
+        &self.0[uindex]
+    }
+}
+
+impl core::ops::IndexMut<(usize, usize)> for Image {
+
+    fn index_mut(&mut self, index : (usize, usize)) -> &mut Color{
+        let uindex : usize = (8 * index.0) + index.1;
+        &mut self.0[uindex]
+    }
+
 }
