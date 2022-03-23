@@ -6,12 +6,14 @@ use super::gamma;
 #[derive(Clone)]
 #[derive(Copy)]
 #[derive(Default)]
+#[repr(C)]
 pub struct Color {
     r : u8,
     g : u8,
     b : u8,
 }
 
+#[repr(transparent)]
 pub struct Image([Color; 64]);
 
 const RED : Color = Color{r : 255, g : 0, b : 0};
@@ -68,6 +70,16 @@ impl Image {
 
     pub fn row(&self, row : usize) -> &[Color] {
         &self.0[8 * row .. 8 * (row + 1)]
+    }
+
+    pub fn gradient(color : Color) -> Self {
+        let mut grad : Image = Image::default();
+        for row in 0..8 {
+            for col in 0..8 {
+                grad[(row, col)] = color / (1 + row * row + col) as f32
+            }
+        }
+        grad
     }
 }
 
