@@ -109,3 +109,17 @@ impl core::ops::IndexMut<(usize, usize)> for Image {
     }
 
 }
+
+impl core::convert::AsRef<[u8; 192]> for Image {
+
+    fn as_ref(&self) -> &[u8; 192] {
+        unsafe {core::mem::transmute::<&Image, &[u8; 192]>(self)}
+    }
+}
+
+impl core::convert::AsMut<[u8; 192]> for Image {
+
+    fn as_mut(&mut self) -> &mut [u8; 192] {
+        unsafe {core::mem::transmute::<&mut Image, &mut [u8; 192]>(self)}
+    }
+}
