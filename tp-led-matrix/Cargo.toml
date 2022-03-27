@@ -3,7 +3,13 @@ name = "tp-led-matrix"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "tp-led-matrix"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 micromath = "2.0.0"
+cortex-m-rt = "0.7.1"
+stm32l4 = {version = "0.14.0", features = ["stm32l4x5"]}
+
