@@ -11,5 +11,14 @@ name = "tp-led-matrix"
 [dependencies]
 micromath = "2.0.0"
 cortex-m-rt = "0.7.1"
-stm32l4 = {version = "0.14.0", features = ["stm32l4x5"]}
+#stm32l4 = {version = "0.14.0", features = ["stm32l4x5"]}
+stm32l4xx-hal = { git = "https://github.com/stm32-rs/stm32l4xx-hal", features = ["stm32l475", "rt"], rev = "46006b9e2c2d2ea5ea9a00409505e17d16279e1f" }
+defmt = "0.3.1"
+defmt-rtt = "0.3.2"
+panic-probe = {version = "0.3.0", features = ["print-defmt"]}
+
+[profile.release]
+debug = true      # symbols are nice and they don't increase the size on the target
+lto = true        # better optimizations
+codegen-units = 1 # better optimizations
 
