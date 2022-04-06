@@ -1,24 +1,29 @@
 #![no_std]
 #![no_main]
+#![allow(clippy::empty_loop)]
 
 use stm32l4xx_hal::{pac, prelude::*};
 use panic_probe as _;
 use defmt_rtt as _;
 use tp_led_matrix::{Image, Color, matrix::Matrix};
+use dwt_systick_monotonic::DwtSystick;
 
-
-
-#[rtic::app(device = pac)]
+#[rtic::app(device = pac, dispatchers = [USART2])]
 mod app {
 
     use super::*;
+    #[monotonic(binds = SysTick, default = true)]
+    type MyMonotonic = DwtSystick<80_000_000>;
+
 
     #[init]
     fn init(cx: init::Context) -> (Shared, Local, init::Monotonics) {
         defmt::info!("defmt correctly initialized");
 
-        let _cp = cx.core;
+        let mut cp = cx.core;
         let dp = cx.device;
+
+        let mut mono = DwtSystick::new(&mut cp.DCB, cp.DWT, cp.SYST, 80_000_000);
 
         // Get high-level representations of hardware modules
         let mut rcc = dp.RCC.constrain();
@@ -53,10 +58,15 @@ mod app {
             &mut gpiob.otyper,
             &mut gpioc.moder,
             &mut gpioc.otyper,
-            clocks);
+            clocks
+        );
+
+        let image = Image::gradient(Color::BLUE);
+
+        display::spawn().unwrap();
 
         // Return the resources and the monotonic timer
-        (Shared {}, Local { matrix }, init::Monotonics())
+        (Shared {}, Local { matrix, image }, init::Monotonics(mono))
     }
 
     #[shared]
@@ -64,13 +74,12 @@ mod app {
 
     #[local]
     struct Local {
-        matrix: Matrix
+        matrix: Matrix,
+        image : Image,
     }
 
-    #[idle(local = [matrix])]
-    fn idle(cx: idle::Context) -> ! {
-        // Display an image on the LED matrix in an infinite loop
-        let gradient = Image::gradient(Color::BLUE);
+    #[idle(local = [])]
+    fn idle(_cx: idle::Context) -> ! {
 
         /*for i in 0..8 {
             defmt::trace!(
@@ -87,9 +96,24 @@ mod app {
             );
         }*/
 
-        loop {
-            cx.local.matrix.display_image(&gradient);
-        }
+        loop { }
     }
+
+    #[task(local = [matrix, image, next_line: usize = 0])]
+    fn display(cx: display::Context) {
+        // Display line next_line (cx.local.next_line) of
+        // the image (cx.local.image) on the matrix (cx.local.matrix).
+        // All those are mutable references.
+        cx.local.matrix.send_row(*cx.local.next_line, cx.local.image.row(*cx.local.next_line));
+        // Increment next_line up to 7 and wraparound to 0
+        if *cx.local.next_line == 7 {
+            *cx.local.next_line = 0;
+        } else {
+            *cx.local.next_line += 1;
+        }
+
+        display::spawn().unwrap();
+    }
+
 }
 
