@@ -16,10 +16,6 @@ pub struct Color {
 #[repr(transparent)]
 pub struct Image([Color; 64]);
 
-const RED : Color = Color{r : 255, g : 0, b : 0};
-const GREEN : Color = Color{r : 0, g : 255, b : 0};
-const BLUE : Color = Color{r : 0, g : 0, b : 255};
-
 fn limit(op : f32) -> u8 {
     if op > 255_f32 {
         255
@@ -29,6 +25,10 @@ fn limit(op : f32) -> u8 {
 }
 
 impl Color {
+
+    pub const RED : Color = Color{r : 255, g : 0, b : 0};
+    pub const GREEN : Color = Color{r : 0, g : 255, b : 0};
+    pub const BLUE : Color = Color{r : 0, g : 0, b : 255};
 
     pub fn gamma_correct(&self) -> Self {
         Color{

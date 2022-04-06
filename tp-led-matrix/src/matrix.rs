@@ -123,9 +123,15 @@ impl Matrix {
             self.send_byte(mycolor.b);
             self.send_byte(mycolor.g);
             self.send_byte(mycolor.r);
+            if i == 5 {
+                if row == 0 {
+                    self.row(7, Low);
+                } else {
+                    self.row(row - 1, Low);
+                }
+            }
         }
         self.pulse_lat();
-        self.row(row - 1, Low);
         self.row(row, High);
     }
 
@@ -145,7 +151,7 @@ impl Matrix {
     pub fn display_image(&mut self, image: &Image) {
         // Do not forget that image.row(n) gives access to the content of row n,
         // and that self.send_row() uses the same format.
-        for i in 0..7 {
+        for i in 0..=7 {
             self.send_row(i, image.row(i));
         }
         
