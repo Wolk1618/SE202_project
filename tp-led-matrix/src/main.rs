@@ -7,6 +7,7 @@ use panic_probe as _;
 use defmt_rtt as _;
 use tp_led_matrix::{Image, Color, matrix::Matrix};
 use dwt_systick_monotonic::DwtSystick;
+use dwt_systick_monotonic::ExtU32;
 
 #[rtic::app(device = pac, dispatchers = [USART2])]
 mod app {
@@ -14,6 +15,7 @@ mod app {
     use super::*;
     #[monotonic(binds = SysTick, default = true)]
     type MyMonotonic = DwtSystick<80_000_000>;
+    type Instant = <MyMonotonic as rtic::Monotonic>::Instant;
 
 
     #[init]
@@ -63,7 +65,7 @@ mod app {
 
         let image = Image::gradient(Color::BLUE);
 
-        display::spawn().unwrap();
+        display::spawn(mono.now()).unwrap();
 
         // Return the resources and the monotonic timer
         (Shared {}, Local { matrix, image }, init::Monotonics(mono))
@@ -96,11 +98,19 @@ mod app {
             );
         }*/
 
-        loop { }
+        //let mut i = 0;
+        loop {
+            /*if i == 10_000 {
+                defmt::info!("top");
+                i = 0;
+            } else {
+                i += 1;
+            }*/
+        }
     }
 
     #[task(local = [matrix, image, next_line: usize = 0])]
-    fn display(cx: display::Context) {
+    fn display(cx: display::Context, at: Instant) {
         // Display line next_line (cx.local.next_line) of
         // the image (cx.local.image) on the matrix (cx.local.matrix).
         // All those are mutable references.
@@ -112,7 +122,8 @@ mod app {
             *cx.local.next_line += 1;
         }
 
-        display::spawn().unwrap();
+        let time : Instant = at + 1.secs() / (60 * 8);
+        display::spawn_at(time, time).unwrap();
     }
 
 }
