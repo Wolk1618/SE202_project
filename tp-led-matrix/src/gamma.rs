@@ -17,6 +17,8 @@ const GAMMA_TAB: [u8; 256] = [
     0xe7, 0xe9, 0xea, 0xec, 0xee, 0xef, 0xf1, 0xf3, 0xf4, 0xf6, 0xf8, 0xf9, 0xfb, 0xfd, 0xfe, 0xff,
 ];
 
+/// This function returns the appropriate gamma correction for the intensity given.
+/// Gamma correction helps increase the quality of the picture by modifying the contrast.
 pub fn gamma_correct(x : u8) -> u8 {
     GAMMA_TAB[x as usize]
 }

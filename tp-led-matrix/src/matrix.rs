@@ -1,9 +1,12 @@
+//! This module gathers many functions whose aim is to help using the led matrix.
 
 use stm32l4xx_hal::{gpio::*, rcc::Clocks};
 use super::{Color, Image};
 use crate::matrix::PinState::*;
 use stm32l4xx_hal::prelude::_embedded_hal_blocking_delay_DelayMs;
 
+/// This structure contains the pins used to control the columns and row of the LED matrix
+/// in order to print images on it.
 pub struct Matrix {
     sb: PC5<Output<PushPull>>,
     lat: PC4<Output<PushPull>>,
@@ -65,11 +68,14 @@ impl Matrix {
             c6: pb0.into_push_pull_output_in_state(gpiob_moder, gpiob_otyper, Low),
             c7: pa3.into_push_pull_output_in_state(gpioa_moder, gpioa_otyper, Low),
         };
-
+        
+        // The speed of these pins are set at a very high level because of the important traffic
+        // needed on them.
         matrix.sck = matrix.sck.set_speed(Speed::VeryHigh);
         matrix.sda = matrix.sda.set_speed(Speed::VeryHigh);
         matrix.lat = matrix.lat.set_speed(Speed::VeryHigh);
         
+        // The following lines are used to bring a 100ms delay required for the initialization.
         let mut delay = stm32l4xx_hal::delay::DelayCM::new(clocks);
         stm32l4xx_hal::delay::DelayCM::delay_ms(&mut delay, 100_u8);
 
@@ -109,6 +115,7 @@ impl Matrix {
     /// Send a byte on SDA starting with the MSB and pulse SCK high after each bit
     fn send_byte(&mut self, pixel: u8) {
         for i in (0..=7).rev() {
+            // The corresponding value is put on the SDA pin
             self.sda.set_state(PinState::from((pixel >> i) & 1 == 1));
             self.pulse_sck();
         }
@@ -118,11 +125,15 @@ impl Matrix {
     /// must be applied to every pixel before sending them. The previous row must
     /// be deactivated and the new one activated.
     pub fn send_row(&mut self, row: usize, pixels: &[Color]) {
+        // pixels represents the 8 colors that composes the given row
         for i in (0..=7).rev() {
             let mycolor = pixels[i].gamma_correct();
+            // Here the 3 RGB components of the color are sent one by one on SDA pin
             self.send_byte(mycolor.b);
             self.send_byte(mycolor.g);
             self.send_byte(mycolor.r);
+            // The previous row is turned off when i = 5 because it is the optimal time according
+            // to different fluidity tests.
             if i == 5 {
                 if row == 0 {
                     self.row(7, Low);
@@ -132,7 +143,7 @@ impl Matrix {
             }
         }
         self.pulse_lat();
-        self.row(row, High);
+        self.row(row, High); // the new row is turned on
     }
 
     /// Initialize bank0 by temporarily setting SB to low and sending 144 one bits,
@@ -140,6 +151,7 @@ impl Matrix {
     /// restored to high.
     fn init_bank0(&mut self) {
         self.sb.set_low();
+        // 18 x 8 = 144 one bits are sent on sda to initialize the bank0
         for _i in 0..18 {
             self.send_byte(255_u8);
         }
