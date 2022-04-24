@@ -6,12 +6,11 @@
 use micromath::F32;
 use super::gamma;
 
+/// This structure represents a color with its 3 RGB components.
 #[derive(Clone)]
 #[derive(Copy)]
 #[derive(Default)]
 #[repr(C)]
-
-/// This structure represents a color with its 3 RGB components.
 pub struct Color {
     pub r : u8,
     pub g : u8,
@@ -19,9 +18,9 @@ pub struct Color {
 }
 
 
-#[repr(transparent)]
 
 /// This structure is only a representation of an image (8x8 pixels)
+#[repr(transparent)]
 pub struct Image([Color; 64]);
 
 /// Utility function whose aim is to convert an f32 into an u8 by limiting the highest value.
